@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WAREHOUSE AI — สร้างภาพสินค้าด้วย AI (ฟรี)</title>
+<title>WAREHOUSE AI — สร้างภาพสินค้าด้วย AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Teko:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<!-- ไลบรารีสำหรับอ่านข้อความจากรูปภาพ -->
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root {
   --bg: #0a0c0b;
@@ -67,14 +65,33 @@ header {
 .dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 2s ease-in-out infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-/* ── FREE BADGE ── */
-.free-banner {
-  background: linear-gradient(135deg,rgba(57,217,138,0.1),rgba(57,217,138,0.04));
-  border-bottom:1px solid rgba(57,217,138,0.2);
-  padding:0.6rem 2rem;
-  display:flex;align-items:center;gap:1rem;
+/* ── API KEY BANNER ── */
+.api-banner {
+  background: linear-gradient(135deg,rgba(240,192,64,0.1),rgba(240,192,64,0.04));
+  border-bottom:1px solid rgba(240,192,64,0.25);
+  padding:0.9rem 2rem;
+  display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap;
 }
-.free-banner p { font-size:0.78rem;color:var(--green);margin:0; }
+.api-banner p { font-size:0.8rem; color:var(--amber); flex:1; min-width:200px; }
+.api-key-input-row { display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+.api-input {
+  background:rgba(0,0,0,0.5); border:1px solid rgba(240,192,64,0.4);
+  color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:0.72rem;
+  padding:0.45rem 0.85rem; width:250px; outline:none; letter-spacing:0.05em;
+}
+.api-input::placeholder { color:var(--muted); }
+.api-input:focus { border-color:var(--amber); }
+.btn-sm {
+  padding:0.45rem 0.9rem; font-family:'Sarabun',sans-serif; font-size:0.78rem;
+  font-weight:600; cursor:pointer; border:1px solid; transition:all .15s;
+  letter-spacing:0.04em; background:transparent;
+}
+.btn-sm.amber { color:var(--amber); border-color:var(--amber); }
+.btn-sm.amber:hover { background:var(--amber); color:#000; }
+.btn-sm.green { color:var(--green); border-color:var(--green); }
+.btn-sm.green:hover { background:var(--green); color:#000; }
+.btn-sm.red { color:var(--red); border-color:var(--red); }
+.btn-sm.red:hover { background:var(--red); color:#fff; }
 
 /* ── TABS (Mode Selector) ── */
 .mode-tabs {
@@ -93,8 +110,9 @@ header {
   letter-spacing:0.08em; text-transform:uppercase;
   color:var(--muted); cursor:pointer;
   border-bottom:2px solid transparent;
+  white-space:nowrap; transition:all .2s;
   border-right:1px solid var(--border);
-  flex-shrink:0; transition:all .2s;
+  flex-shrink:0;
 }
 .mode-tab:hover { color:var(--text2); background:rgba(255,255,255,0.02); }
 .mode-tab.active { color:var(--green); border-bottom-color:var(--green); background:rgba(57,217,138,0.04); }
@@ -278,11 +296,6 @@ select option { background:var(--surface2); }
 .analysis-card h4 { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--green); letter-spacing:.2em; text-transform:uppercase; margin-bottom:0.7rem; }
 .analysis-card p { font-size:0.83rem; line-height:1.8; color:var(--text2); }
 
-/* OCR RESULT CARD */
-.ocr-card { width:100%; max-width:680px; margin:0 auto; background:rgba(91,156,246,0.04); border:1px solid rgba(91,156,246,0.18); padding:1.1rem; display:none; }
-.ocr-card h4 { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--blue); letter-spacing:.2em; text-transform:uppercase; margin-bottom:0.7rem; }
-.ocr-text { font-family:'IBM Plex Mono',monospace; font-size:0.73rem; line-height:1.7; color:var(--text2); white-space:pre-wrap; word-break:break-word; }
-
 /* HISTORY STRIP */
 .history-strip { border-top:1px solid var(--border); padding:0.9rem 1.5rem; background:var(--surface); }
 .history-strip h5 { font-family:'IBM Plex Mono',monospace; font-size:0.58rem; color:var(--muted); letter-spacing:.2em; text-transform:uppercase; margin-bottom:0.7rem; }
@@ -325,13 +338,6 @@ select option { background:var(--surface2); }
 
 /* Variation count */
 .variation-info { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-align:center; }
-
-.btn-sm {
-  background:var(--surface2); border:1px solid var(--border); color:var(--text);
-  padding:0.4rem 0.8rem; font-size:0.75rem; cursor:pointer; transition:all .15s;
-}
-.btn-sm.green { background:rgba(57,217,138,0.1); border-color:var(--green); color:var(--green); }
-.btn-sm:hover { opacity:0.8; }
 </style>
 </head>
 <body>
@@ -341,21 +347,26 @@ select option { background:var(--surface2); }
     <div class="logo-mark"><div></div><div></div><div></div><div></div></div>
     <div>
       <div class="logo-title">WAREHOUSE <span>AI</span></div>
-      <div class="logo-sub">Free AI Image Studio v3.0</div>
+      <div class="logo-sub">Product Image Studio v2.0</div>
     </div>
   </div>
   <div class="header-right">
     <div class="api-status">
       <div class="dot" id="statusDot"></div>
-      <span id="apiStatusText">พร้อมใช้งาน · ฟรี</span>
+      <span id="apiStatusText">รอ API Key</span>
     </div>
   </div>
 </header>
 
-<!-- FREE BADGE -->
-<div class="free-banner">
-  <span style="font-size:1rem;">✅</span>
-  <p>ใช้งานได้ฟรี — ไม่ต้องกรอก API Key ใดๆ · ระบบอ่านข้อความในรูปภาพ + สร้างภาพสินค้าด้วย AI</p>
+<!-- API KEY BANNER -->
+<div class="api-banner" id="apiBanner">
+  <span>🔑</span>
+  <p>ต้องใช้ <strong>OpenAI API Key</strong> สำหรับ DALL-E 3 — Claude API สำหรับวิเคราะห์สินค้า (จัดการอัตโนมัติ)</p>
+  <div class="api-key-input-row">
+    <input type="password" class="api-input" id="openaiKeyInput" placeholder="sk-proj-..." />
+    <button class="btn-sm amber" onclick="saveKey()">บันทึก Key</button>
+    <button class="btn-sm red" onclick="clearKey()" id="clearKeyBtn" style="display:none">ล้าง Key</button>
+  </div>
 </div>
 
 <!-- MODE TABS -->
@@ -412,9 +423,6 @@ select option { background:var(--surface2); }
           <div>
             <label class="field-label">รายละเอียดเพิ่มเติม</label>
             <textarea id="productDesc" placeholder="สี, ขนาด, วัสดุ, สภาพ..."></textarea>
-          </div>
-          <div style="margin-top:.7rem">
-            <button class="btn-sm green" onclick="readImageText()">📖 อ่านข้อความจากรูปภาพ</button>
           </div>
         </div>
         <div>
@@ -482,10 +490,6 @@ select option { background:var(--surface2); }
             <div class="chip" data-val="1024x1792">9:16 Tall</div>
           </div>
         </div>
-        <button class="btn-generate" id="generateBtn">
-          <span class="spin"></span>
-          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
-        </button>
       </div>
     </div>
 
@@ -500,37 +504,36 @@ select option { background:var(--surface2); }
             <input type="text" id="handProductName" placeholder="เช่น กล่องพัสดุน้ำตาล" />
           </div>
           <textarea id="handProductDesc" placeholder="รายละเอียดสินค้า..." style="margin-bottom:.7rem"></textarea>
-          <button class="btn-sm green" onclick="readImageText()">📖 อ่านข้อความจากรูปภาพ</button>
         </div>
         <div>
           <div class="section-label">ลักษณะมือและท่าทาง</div>
           <div class="scene-grid">
-            <div class="scene-card selected" data-mode="hand" data-val="person holding product with both hands, showing product to camera, product review gesture, close-up of hands and product, no face visible, realistic hands">
+            <div class="scene-card selected" data-mode="hand" data-val="person holding product with both hands, showing product to camera, product review gesture, close-up of hands and product">
               <span class="s-icon">🤲</span>
               <span class="s-name">จับแสดง</span>
               <span class="s-desc">ยกแสดงสินค้าให้กล้อง</span>
             </div>
-            <div class="scene-card" data-mode="hand" data-val="hands unboxing product, opening package excitedly, unboxing experience, no face visible, realistic hands">
+            <div class="scene-card" data-mode="hand" data-val="hands unboxing product, opening package excitedly, unboxing experience">
               <span class="s-icon">📦</span>
               <span class="s-name">Unboxing</span>
               <span class="s-desc">แกะกล่องสินค้า</span>
             </div>
-            <div class="scene-card" data-mode="hand" data-val="hand holding product from below, palm up, product showcasing, studio lighting, no face visible, realistic hands">
+            <div class="scene-card" data-mode="hand" data-val="hand holding product from below, palm up, product showcasing, studio lighting">
               <span class="s-icon">🖐️</span>
               <span class="s-name">วางบนฝ่ามือ</span>
               <span class="s-desc">สินค้าบนฝ่ามือ</span>
             </div>
-            <div class="scene-card" data-mode="hand" data-val="hand pointing at product details, finger pointing to features, product detail review, no face visible, realistic hands">
+            <div class="scene-card" data-mode="hand" data-val="hand pointing at product details, finger pointing to features, product detail review">
               <span class="s-icon">👆</span>
               <span class="s-name">ชี้รายละเอียด</span>
               <span class="s-desc">ชี้จุดเด่นสินค้า</span>
             </div>
-            <div class="scene-card" data-mode="hand" data-val="two hands comparing two products side by side, size comparison, no face visible, realistic hands">
+            <div class="scene-card" data-mode="hand" data-val="two hands comparing two products side by side, size comparison">
               <span class="s-icon">⚖️</span>
               <span class="s-name">เปรียบขนาด</span>
               <span class="s-desc">เทียบขนาดกับมือ</span>
             </div>
-            <div class="scene-card" data-mode="hand" data-val="hand turning product around to show all sides, rotating product showcase, no face visible, realistic hands">
+            <div class="scene-card" data-mode="hand" data-val="hand turning product around to show all sides, rotating product showcase">
               <span class="s-icon">🔄</span>
               <span class="s-name">หมุนโชว์รอบด้าน</span>
               <span class="s-desc">แสดงทุกด้าน</span>
@@ -559,10 +562,6 @@ select option { background:var(--surface2); }
             </div>
           </div>
         </div>
-        <button class="btn-generate" id="handGenerateBtn">
-          <span class="spin"></span>
-          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
-        </button>
       </div>
     </div>
 
@@ -577,37 +576,36 @@ select option { background:var(--surface2); }
             <input type="text" id="convProductName" placeholder="เช่น กล่องพัสดุสีน้ำตาล" />
           </div>
           <textarea id="convProductDesc" placeholder="รายละเอียดสินค้า..." style="margin-bottom:.7rem"></textarea>
-          <button class="btn-sm green" onclick="readImageText()">📖 อ่านข้อความจากรูปภาพ</button>
         </div>
         <div>
           <div class="section-label">ลักษณะสายพาน</div>
           <div class="scene-grid">
-            <div class="scene-card selected" data-mode="conveyor" data-val="products moving on industrial conveyor belt in modern warehouse, factory production line, packages flowing on belt, workers watching, clear product visibility">
+            <div class="scene-card selected" data-mode="conveyor" data-val="products moving on industrial conveyor belt in modern warehouse, factory production line, packages flowing on belt, workers watching">
               <span class="s-icon">🏭</span>
               <span class="s-name">สายการผลิต</span>
               <span class="s-desc">สินค้าบนสายพานโรงงาน</span>
             </div>
-            <div class="scene-card" data-mode="conveyor" data-val="automated sorting conveyor belt in distribution warehouse, barcode scanners, multiple packages, high-tech logistics, clear product visibility">
+            <div class="scene-card" data-mode="conveyor" data-val="automated sorting conveyor belt in distribution warehouse, barcode scanners, multiple packages, high-tech logistics">
               <span class="s-icon">📊</span>
               <span class="s-name">คัดแยกอัตโนมัติ</span>
               <span class="s-desc">ระบบ Sorting อัตโนมัติ</span>
             </div>
-            <div class="scene-card" data-mode="conveyor" data-val="warehouse worker standing next to conveyor belt loading packages, hard hat, safety vest, industrial setting, clear product visibility">
+            <div class="scene-card" data-mode="conveyor" data-val="warehouse worker standing next to conveyor belt loading packages, hard hat, safety vest, industrial setting">
               <span class="s-icon">👷</span>
               <span class="s-name">พนักงานโหลดสินค้า</span>
               <span class="s-desc">คนทำงานข้างสายพาน</span>
             </div>
-            <div class="scene-card" data-mode="conveyor" data-val="close-up of product on conveyor belt, single package moving, industrial conveyor texture, motion blur, clear product visibility">
+            <div class="scene-card" data-mode="conveyor" data-val="close-up of product on conveyor belt, single package moving, industrial conveyor texture, motion blur">
               <span class="s-icon">📦</span>
               <span class="s-name">โคลสอัพสินค้า</span>
               <span class="s-desc">สินค้าบนสายพาน ระยะใกล้</span>
             </div>
-            <div class="scene-card" data-mode="conveyor" data-val="aerial view looking down at conveyor belt with many packages, busy fulfillment center, bird's eye view, clear product visibility">
+            <div class="scene-card" data-mode="conveyor" data-val="aerial view looking down at conveyor belt with many packages, busy fulfillment center, bird's eye view">
               <span class="s-icon">🔭</span>
               <span class="s-name">มุมสูง</span>
               <span class="s-desc">มองลงมาจากด้านบน</span>
             </div>
-            <div class="scene-card" data-mode="conveyor" data-val="robotic arm picking packages from conveyor belt, automation, smart warehouse technology, futuristic, clear product visibility">
+            <div class="scene-card" data-mode="conveyor" data-val="robotic arm picking packages from conveyor belt, automation, smart warehouse technology, futuristic">
               <span class="s-icon">🤖</span>
               <span class="s-name">โรบอทหยิบสินค้า</span>
               <span class="s-desc">หุ่นยนต์ออโตเมชั่น</span>
@@ -631,10 +629,6 @@ select option { background:var(--surface2); }
             </div>
           </div>
         </div>
-        <button class="btn-generate" id="convGenerateBtn">
-          <span class="spin"></span>
-          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
-        </button>
       </div>
     </div>
 
@@ -649,37 +643,36 @@ select option { background:var(--surface2); }
             <input type="text" id="packProductName" placeholder="เช่น ของชำร่วย, เสื้อผ้า" />
           </div>
           <textarea id="packProductDesc" placeholder="รายละเอียดสินค้า..." style="margin-bottom:.7rem"></textarea>
-          <button class="btn-sm green" onclick="readImageText()">📖 อ่านข้อความจากรูปภาพ</button>
         </div>
         <div>
           <div class="section-label">ฉากการแพ็คสินค้า</div>
           <div class="scene-grid">
-            <div class="scene-card selected" data-mode="packing" data-val="warehouse worker packing products into boxes on a packing station table, organized workspace, sealing tape, labels, bright warehouse setting, no face visible, realistic hands">
+            <div class="scene-card selected" data-mode="packing" data-val="warehouse worker packing products into boxes on a packing station table, organized workspace, sealing tape, labels, bright warehouse setting">
               <span class="s-icon">👩‍💼</span>
               <span class="s-name">โต๊ะแพ็คของ</span>
               <span class="s-desc">พนักงานแพ็คที่โต๊ะ</span>
             </div>
-            <div class="scene-card" data-mode="packing" data-val="team of warehouse workers busy packing orders at long packing table, teamwork, fulfillment center operations, multiple workers, uniforms, no face visible">
+            <div class="scene-card" data-mode="packing" data-val="team of warehouse workers busy packing orders at long packing table, teamwork, fulfillment center operations, multiple workers, uniforms">
               <span class="s-icon">👥</span>
               <span class="s-name">ทีมแพ็คสินค้า</span>
               <span class="s-desc">หลายคนทำงานพร้อมกัน</span>
             </div>
-            <div class="scene-card" data-mode="packing" data-val="close-up of hands carefully wrapping product in bubble wrap, protective packaging, detail shot, no face visible, realistic hands">
+            <div class="scene-card" data-mode="packing" data-val="close-up of hands carefully wrapping product in bubble wrap, protective packaging, detail shot">
               <span class="s-icon">🛡️</span>
               <span class="s-name">ห่อบับเบิ้ล</span>
               <span class="s-desc">ห่อปกป้องสินค้า</span>
             </div>
-            <div class="scene-card" data-mode="packing" data-val="person sealing cardboard box with tape gun, packaging process, shipping preparation, tape dispenser in action, no face visible, realistic hands">
+            <div class="scene-card" data-mode="packing" data-val="person sealing cardboard box with tape gun, packaging process, shipping preparation, tape dispenser in action">
               <span class="s-icon">📮</span>
               <span class="s-name">ปิดเทปกล่อง</span>
               <span class="s-desc">ใช้ที่ตัดเทปปิดกล่อง</span>
             </div>
-            <div class="scene-card" data-mode="packing" data-val="person sticking shipping label on package, labeling station, barcode scanner, organized packing area, no face visible, realistic hands">
+            <div class="scene-card" data-mode="packing" data-val="person sticking shipping label on package, labeling station, barcode scanner, organized packing area">
               <span class="s-icon">🏷️</span>
               <span class="s-name">ติดสติ๊กเกอร์ Label</span>
               <span class="s-desc">ติดที่อยู่บนพัสดุ</span>
             </div>
-            <div class="scene-card" data-mode="packing" data-val="quality control worker checking products before packing, inspecting items, clipboard, organized warehouse, no face visible">
+            <div class="scene-card" data-mode="packing" data-val="quality control worker checking products before packing, inspecting items, clipboard, organized warehouse">
               <span class="s-icon">✅</span>
               <span class="s-name">QC ตรวจสอบ</span>
               <span class="s-desc">ตรวจก่อนแพ็ค</span>
@@ -703,11 +696,705 @@ select option { background:var(--surface2); }
             </div>
           </div>
         </div>
-        <button class="btn-generate" id="packGenerateBtn">
-          <span class="spin"></span>
-          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
-        </button>
       </div>
     </div>
 
-   
+    <!-- ── TAB: BATCH ── -->
+    <div class="tab-panel" id="panel-batch">
+      <div class="settings-body">
+        <div class="mode-badge">🔄 Batch Mode — สร้างหลายสไตล์พร้อมกัน</div>
+        <div>
+          <div class="section-label">ข้อมูลสินค้า</div>
+          <div style="margin-bottom:.7rem">
+            <label class="field-label">ชื่อสินค้า</label>
+            <input type="text" id="batchProductName" placeholder="เช่น กล่องกระดาษ" />
+          </div>
+          <textarea id="batchProductDesc" placeholder="รายละเอียดสินค้า..." style="margin-bottom:.7rem"></textarea>
+        </div>
+        <div>
+          <div class="section-label">เลือกสไตล์ที่ต้องการสร้าง (ได้หลายอัน)</div>
+          <div class="chips" id="batchStyleChips" style="gap:.5rem">
+            <div class="chip on" data-val="white_studio" style="padding:6px 12px">📸 White Studio</div>
+            <div class="chip on" data-val="warehouse" style="padding:6px 12px">🏭 โกดัง</div>
+            <div class="chip" data-val="hand_hold" style="padding:6px 12px">🤲 มือจับ</div>
+            <div class="chip" data-val="conveyor" style="padding:6px 12px">⚙️ สายพาน</div>
+            <div class="chip" data-val="packing" style="padding:6px 12px">📦 แพ็คของ</div>
+            <div class="chip" data-val="dark_dramatic" style="padding:6px 12px">🌑 Dark</div>
+          </div>
+          <p style="font-size:0.68rem;color:var(--muted);margin-top:0.5rem;font-family:'IBM Plex Mono',monospace;">
+            * Batch mode สร้างทีละภาพต่อเนื่อง — ใช้ DALL-E credit ตามจำนวนที่เลือก
+          </p>
+        </div>
+        <div>
+          <div class="section-label">ขนาดภาพ</div>
+          <div class="chips" id="batchSizeChips">
+            <div class="chip on" data-val="1024x1024">1:1 Square</div>
+            <div class="chip" data-val="1792x1024">16:9 Wide</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATE BUTTON -->
+    <div style="padding:0 1.2rem 1.2rem">
+      <button class="btn-generate" id="generateBtn" onclick="startGeneration()">
+        <div class="spin" id="mainSpin"></div>
+        <span id="btnText">⚡ วิเคราะห์ &amp; สร้างภาพ</span>
+      </button>
+    </div>
+
+  </div>
+  <!-- END LEFT PANEL -->
+
+  <!-- ═══════════ RIGHT PANEL ═══════════ -->
+  <div class="right-panel">
+
+    <div class="stage" id="stage">
+
+      <!-- IDLE -->
+      <div class="idle-state" id="idleState">
+        <div class="big-icon">🏭</div>
+        <h2>WAREHOUSE AI STUDIO</h2>
+        <p>อัปโหลดรูปสินค้า → เลือกโหมด → AI วิเคราะห์ → สร้างภาพมืออาชีพ<br>รองรับ: Studio · มือจับสินค้า · สายพาน · แพ็คของ</p>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="progress-block" id="progressBlock">
+        <div class="progress-step" id="step1">
+          <div class="step-icon">01</div>
+          <div class="step-info">
+            <div class="step-name">วิเคราะห์รูปสินค้า</div>
+            <div class="step-desc">Claude AI กำลังอ่านและเข้าใจสินค้าของคุณ</div>
+          </div>
+          <div class="step-loader"></div>
+        </div>
+        <div class="progress-step" id="step2">
+          <div class="step-icon">02</div>
+          <div class="step-info">
+            <div class="step-name">สร้าง Image Prompt</div>
+            <div class="step-desc">Claude ออกแบบ Prompt ตามโหมดที่เลือก</div>
+          </div>
+          <div class="step-loader"></div>
+        </div>
+        <div class="progress-step" id="step3">
+          <div class="step-icon">03</div>
+          <div class="step-info">
+            <div class="step-name" id="step3Name">DALL-E 3 สร้างภาพ</div>
+            <div class="step-desc" id="step3Desc">OpenAI กำลัง render ภาพระดับโปร</div>
+          </div>
+          <div class="step-loader"></div>
+        </div>
+      </div>
+
+      <!-- RESULT (single) -->
+      <div class="result-block" id="resultBlock">
+        <div class="generated-img-wrap">
+          <img id="generatedImg" src="" alt="AI Generated Product" />
+          <div class="img-overlay">
+            <span class="img-tag" id="imgTag">✦ AI GENERATED — DALL-E 3</span>
+            <a class="btn-download" id="downloadBtn" href="#" download="warehouse-product.png">⬇ ดาวน์โหลด</a>
+          </div>
+        </div>
+
+        <div class="analysis-card" id="analysisCard">
+          <h4>🔍 การวิเคราะห์สินค้า (Claude)</h4>
+          <p id="analysisText"></p>
+        </div>
+
+        <div class="prompt-card">
+          <div class="prompt-card-header">
+            <h4>📝 Image Prompt ที่ใช้</h4>
+            <button class="btn-copy" id="copyBtn" onclick="copyPrompt()">📋 คัดลอก</button>
+          </div>
+          <div class="prompt-text" id="promptText"></div>
+        </div>
+
+        <div class="result-actions">
+          <button class="btn-sm amber" onclick="resetToIdle()">🔄 เริ่มใหม่</button>
+          <button class="btn-sm green" onclick="generateAgain()">🎲 สร้างอีกครั้ง (Prompt เดิม)</button>
+        </div>
+      </div>
+
+      <!-- BATCH RESULT -->
+      <div id="batchResultBlock" style="display:none; width:100%; flex-direction:column; gap:1rem;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--green); letter-spacing:.15em; text-transform:uppercase; text-align:center; margin-bottom:0.5rem;" id="batchStatus">สร้าง 0/0</div>
+        <div id="batchGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:0.8rem; width:100%;"></div>
+        <div style="text-align:center; margin-top:0.5rem;">
+          <button class="btn-sm amber" onclick="resetToIdle()">🔄 เริ่มใหม่</button>
+        </div>
+      </div>
+
+      <!-- ERROR -->
+      <div class="error-block" id="errorBlock">
+        <h3>❌ เกิดข้อผิดพลาด</h3>
+        <p id="errorMsg"></p>
+        <br>
+        <button class="btn-sm amber" onclick="resetToIdle()">ลองใหม่</button>
+      </div>
+
+    </div><!-- end .stage -->
+
+    <!-- HISTORY -->
+    <div class="history-strip">
+      <h5>รูปที่สร้างไว้ (เซสชั่นนี้)</h5>
+      <div class="history-imgs" id="historyImgs">
+        <span class="no-history">ยังไม่มีรูป</span>
+      </div>
+    </div>
+
+  </div>
+  <!-- END RIGHT PANEL -->
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+let uploadedImageB64 = null;
+let uploadedImageType = 'image/jpeg';
+let openaiKey = localStorage.getItem('wh_openai_key') || '';
+let lastPrompt = '';
+let lastAnalysis = '';
+let generatedHistory = [];
+let currentTab = 'studio';
+
+/* init */
+if (openaiKey) {
+  document.getElementById('apiBanner').style.display = 'none';
+  document.getElementById('apiStatusText').textContent = 'OpenAI Key พร้อม';
+  document.getElementById('clearKeyBtn').style.display = 'inline-flex';
+}
+
+/* ═══════════════════════════════════════
+   API KEY
+═══════════════════════════════════════ */
+function saveKey() {
+  const k = document.getElementById('openaiKeyInput').value.trim();
+  if (!k.startsWith('sk-')) { alert('Key ต้องขึ้นต้นด้วย sk-'); return; }
+  openaiKey = k;
+  localStorage.setItem('wh_openai_key', k);
+  document.getElementById('apiBanner').style.display = 'none';
+  document.getElementById('apiStatusText').textContent = 'OpenAI Key พร้อม';
+  document.getElementById('clearKeyBtn').style.display = 'inline-flex';
+}
+
+function clearKey() {
+  openaiKey = '';
+  localStorage.removeItem('wh_openai_key');
+  document.getElementById('openaiKeyInput').value = '';
+  document.getElementById('apiBanner').style.display = 'flex';
+  document.getElementById('apiStatusText').textContent = 'รอ API Key';
+  document.getElementById('clearKeyBtn').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════ */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+  resetToIdle();
+}
+
+/* ═══════════════════════════════════════
+   SCENE CARD SELECTION
+═══════════════════════════════════════ */
+document.querySelectorAll('.scene-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const mode = card.dataset.mode;
+    document.querySelectorAll(`.scene-card[data-mode="${mode}"]`).forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+  });
+});
+
+function getSelectedScene(mode) {
+  const sel = document.querySelector(`.scene-card[data-mode="${mode}"].selected`);
+  return sel ? sel.dataset.val : '';
+}
+
+/* ═══════════════════════════════════════
+   UPLOAD
+═══════════════════════════════════════ */
+const zone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+zone.addEventListener('click', () => fileInput.click());
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  if (file.size > 10 * 1024 * 1024) { alert('ไฟล์ใหญ่เกิน 10MB'); return; }
+  uploadedImageType = file.type;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const result = e.target.result;
+    uploadedImageB64 = result.split(',')[1];
+    document.getElementById('previewImg').src = result;
+    document.getElementById('previewStrip').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  uploadedImageB64 = null;
+  document.getElementById('previewStrip').style.display = 'none';
+  document.getElementById('uploadZone').style.display = 'block';
+  fileInput.value = '';
+}
+
+/* ═══════════════════════════════════════
+   CHIP SELECTION (single)
+═══════════════════════════════════════ */
+document.querySelectorAll('.chips:not(#batchStyleChips)').forEach(group => {
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+    });
+  });
+});
+
+/* Batch chips = multi-select */
+document.querySelectorAll('#batchStyleChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('on'));
+});
+
+function getChip(id) {
+  return document.querySelector(`#${id} .chip.on`)?.dataset.val || '';
+}
+
+/* ═══════════════════════════════════════
+   PROGRESS UI
+═══════════════════════════════════════ */
+function showProgress() {
+  document.getElementById('idleState').style.display = 'none';
+  document.getElementById('resultBlock').style.display = 'none';
+  document.getElementById('batchResultBlock').style.display = 'none';
+  document.getElementById('errorBlock').style.display = 'none';
+  document.getElementById('progressBlock').style.display = 'flex';
+  ['step1','step2','step3'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'progress-step';
+    const icon = el.querySelector('.step-icon');
+    icon.textContent = id.replace('step','0');
+  });
+}
+
+function activateStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`step${i}`);
+    if (i < n) { el.className = 'progress-step done'; el.querySelector('.step-icon').textContent = '✓'; }
+    else if (i === n) { el.className = 'progress-step active'; }
+    else { el.className = 'progress-step'; }
+  }
+}
+
+function allStepsDone() {
+  ['step1','step2','step3'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'progress-step done';
+    el.querySelector('.step-icon').textContent = '✓';
+  });
+}
+
+function showResult(imgUrl, prompt, analysis, modeTag = 'DALL-E 3') {
+  document.getElementById('progressBlock').style.display = 'none';
+  document.getElementById('generatedImg').src = imgUrl;
+  document.getElementById('downloadBtn').href = imgUrl;
+  document.getElementById('promptText').textContent = prompt;
+  document.getElementById('analysisText').textContent = analysis;
+  document.getElementById('imgTag').textContent = `✦ AI GENERATED — ${modeTag}`;
+  if (!analysis) { document.getElementById('analysisCard').style.display = 'none'; }
+  else { document.getElementById('analysisCard').style.display = 'block'; }
+  document.getElementById('resultBlock').style.display = 'flex';
+}
+
+function showError(msg) {
+  document.getElementById('progressBlock').style.display = 'none';
+  document.getElementById('errorMsg').textContent = msg;
+  document.getElementById('errorBlock').style.display = 'block';
+}
+
+function resetToIdle() {
+  document.getElementById('resultBlock').style.display = 'none';
+  document.getElementById('batchResultBlock').style.display = 'none';
+  document.getElementById('errorBlock').style.display = 'none';
+  document.getElementById('progressBlock').style.display = 'none';
+  document.getElementById('idleState').style.display = 'block';
+}
+
+/* ═══════════════════════════════════════
+   MAIN ENTRY
+═══════════════════════════════════════ */
+async function startGeneration() {
+  if (!openaiKey) {
+    document.getElementById('apiBanner').style.display = 'flex';
+    alert('กรุณาใส่ OpenAI API Key ก่อน');
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  document.getElementById('btnText').textContent = 'กำลังประมวลผล...';
+
+  try {
+    if (currentTab === 'batch') {
+      await runBatchGeneration();
+    } else {
+      await runSingleGeneration();
+    }
+  } catch(err) {
+    showError(err.message || 'ไม่ทราบสาเหตุ กรุณาลองใหม่');
+  }
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  document.getElementById('btnText').textContent = '⚡ วิเคราะห์ & สร้างภาพ';
+}
+
+/* ═══════════════════════════════════════
+   SINGLE GENERATION (all tabs except batch)
+═══════════════════════════════════════ */
+async function runSingleGeneration() {
+  showProgress();
+  activateStep(1);
+
+  const { prompt, analysis } = await buildPromptForMode();
+  lastPrompt = prompt;
+  lastAnalysis = analysis;
+
+  activateStep(2);
+  await delay(400);
+  activateStep(3);
+
+  const size = getSizeForMode();
+  const imageUrl = await generateWithDallE(prompt, size);
+
+  allStepsDone();
+  await delay(300);
+
+  const modeLabel = { studio:'STUDIO MODE', hand:'HAND REVIEW MODE', conveyor:'CONVEYOR MODE', packing:'PACKING MODE' };
+  showResult(imageUrl, prompt, analysis, modeLabel[currentTab] || 'DALL-E 3');
+  addHistory(imageUrl, prompt, currentTab);
+}
+
+/* ═══════════════════════════════════════
+   BATCH GENERATION
+═══════════════════════════════════════ */
+async function runBatchGeneration() {
+  const selectedStyles = [...document.querySelectorAll('#batchStyleChips .chip.on')].map(c => c.dataset.val);
+  if (!selectedStyles.length) { alert('กรุณาเลือกอย่างน้อย 1 สไตล์'); return; }
+
+  const productName = document.getElementById('batchProductName').value.trim();
+  const productDesc = document.getElementById('batchProductDesc').value.trim();
+  const size = getChip('batchSizeChips') || '1024x1024';
+
+  document.getElementById('idleState').style.display = 'none';
+  document.getElementById('progressBlock').style.display = 'none';
+  document.getElementById('resultBlock').style.display = 'none';
+  document.getElementById('errorBlock').style.display = 'none';
+
+  const batchBlock = document.getElementById('batchResultBlock');
+  batchBlock.style.display = 'flex';
+  const batchGrid = document.getElementById('batchGrid');
+  batchGrid.innerHTML = '';
+  document.getElementById('batchStatus').textContent = `สร้าง 0/${selectedStyles.length}`;
+
+  const stylePrompts = {
+    white_studio: `professional product photography, pure white seamless studio background, soft even lighting, photorealistic 4K`,
+    warehouse: `product in industrial warehouse setting, concrete floor, steel shelves background, dramatic industrial lighting`,
+    hand_hold: `person holding product with both hands showing it to camera, product review style, clean background, close-up`,
+    conveyor: `product on industrial conveyor belt in warehouse, workers nearby, cinematic factory scene`,
+    packing: `warehouse worker packing the product into box at packing station, fulfillment center, professional`,
+    dark_dramatic: `dramatic dark background, rim lighting, spotlight on product, moody commercial photography`,
+  };
+
+  for (let i = 0; i < selectedStyles.length; i++) {
+    const style = selectedStyles[i];
+    document.getElementById('batchStatus').textContent = `สร้าง ${i+1}/${selectedStyles.length} — ${style}`;
+
+    // Placeholder card
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--surface);border:1px solid var(--border);overflow:hidden;';
+    card.innerHTML = `
+      <div style="height:200px;display:flex;align-items:center;justify-content:center;background:var(--surface2);">
+        <div style="text-align:center;color:var(--muted);">
+          <div style="width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto .8rem;"></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;">${style}</div>
+        </div>
+      </div>`;
+    batchGrid.appendChild(card);
+
+    try {
+      // Build prompt via Claude if image or product info available
+      let finalPrompt;
+      if (uploadedImageB64 || productName || productDesc) {
+        const base = await analyzeProduct(productName, productDesc, stylePrompts[style]);
+        finalPrompt = base.prompt;
+      } else {
+        finalPrompt = `${stylePrompts[style]}, photorealistic 4K, no text, no people unless specified`;
+      }
+
+      const imgUrl = await generateWithDallE(finalPrompt, size);
+      addHistory(imgUrl, finalPrompt, style);
+
+      // Replace card with image
+      card.innerHTML = `
+        <img src="${imgUrl}" style="width:100%;display:block;max-height:200px;object-fit:cover;" />
+        <div style="padding:.6rem .8rem;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--green);">${style}</span>
+          <a href="${imgUrl}" download="batch-${style}.png" style="font-size:0.72rem;color:var(--amber);font-family:'IBM Plex Mono',monospace;text-decoration:none;">⬇ Save</a>
+        </div>`;
+    } catch(err) {
+      card.innerHTML = `<div style="height:200px;display:flex;align-items:center;justify-content:center;color:var(--red);font-size:0.72rem;font-family:'IBM Plex Mono',monospace;padding:1rem;text-align:center;">❌ ${err.message.substring(0,60)}</div>`;
+    }
+  }
+
+  document.getElementById('batchStatus').textContent = `✅ เสร็จแล้ว ${selectedStyles.length} ภาพ`;
+}
+
+/* ═══════════════════════════════════════
+   BUILD PROMPT PER MODE
+═══════════════════════════════════════ */
+async function buildPromptForMode() {
+  if (currentTab === 'studio') {
+    return await analyzeAndBuildStudioPrompt();
+  } else if (currentTab === 'hand') {
+    return await buildHandPrompt();
+  } else if (currentTab === 'conveyor') {
+    return await buildConveyorPrompt();
+  } else if (currentTab === 'packing') {
+    return await buildPackingPrompt();
+  }
+  return await analyzeAndBuildStudioPrompt();
+}
+
+function getSizeForMode() {
+  if (currentTab === 'studio') return getChip('sizeChips') || '1024x1024';
+  if (currentTab === 'hand') return document.getElementById('handSize').value || '1024x1024';
+  if (currentTab === 'conveyor') return getChip('convSizeChips') || '1792x1024';
+  if (currentTab === 'packing') return getChip('packSizeChips') || '1792x1024';
+  return '1024x1024';
+}
+
+/* ── STUDIO PROMPT ── */
+async function analyzeAndBuildStudioPrompt() {
+  const productName = document.getElementById('productName').value.trim();
+  const productDesc = document.getElementById('productDesc').value.trim();
+  const bgStyle     = document.getElementById('bgStyle').value;
+  const arrangement = document.getElementById('arrangement').value;
+  const angle       = getChip('angleChips');
+  const quality     = getChip('qualChips');
+  const lighting    = getChip('lightChips');
+
+  const styleContext = `Background: ${bgStyle}. Arrangement: ${arrangement}. Camera angle: ${angle}. Lighting: ${lighting}. Quality: ${quality}.`;
+  return analyzeProduct(productName, productDesc, styleContext);
+}
+
+/* ── HAND PROMPT ── */
+async function buildHandPrompt() {
+  const productName = document.getElementById('handProductName').value.trim();
+  const productDesc = document.getElementById('handProductDesc').value.trim();
+  const sceneVal    = getSelectedScene('hand');
+  const bg          = document.getElementById('handBg').value;
+  const styleCtx    = `${sceneVal}. Background: ${bg}. Photorealistic, 4K, no face visible, realistic human hands, professional photography.`;
+  return analyzeProduct(productName, productDesc, styleCtx);
+}
+
+/* ── CONVEYOR PROMPT ── */
+async function buildConveyorPrompt() {
+  const productName = document.getElementById('convProductName').value.trim();
+  const productDesc = document.getElementById('convProductDesc').value.trim();
+  const sceneVal    = getSelectedScene('conveyor');
+  const mood        = getChip('convMoodChips');
+  const styleCtx    = `${sceneVal}. Mood: ${mood}. Photorealistic, cinematic, no text, professional industrial photography, 4K.`;
+  return analyzeProduct(productName, productDesc, styleCtx);
+}
+
+/* ── PACKING PROMPT ── */
+async function buildPackingPrompt() {
+  const productName = document.getElementById('packProductName').value.trim();
+  const productDesc = document.getElementById('packProductDesc').value.trim();
+  const sceneVal    = getSelectedScene('packing');
+  const mood        = getChip('packMoodChips');
+  const styleCtx    = `${sceneVal}. Mood: ${mood}. Photorealistic, realistic human hands and arms visible, no face needed, professional warehouse photography, 4K.`;
+  return analyzeProduct(productName, productDesc, styleCtx);
+}
+
+/* ═══════════════════════════════════════
+   CLAUDE API: analyze product + build prompt
+═══════════════════════════════════════ */
+async function analyzeProduct(productName, productDesc, styleContext) {
+  const systemPrompt = `You are a professional commercial product photographer and AI image prompt engineer.
+Respond in JSON only. No markdown, no backticks, no preamble.
+Format: {"analysis": "คำอธิบายสินค้าภาษาไทย 1-2 ประโยค", "prompt": "detailed English image generation prompt for DALL-E 3"}`;
+
+  const content = [];
+
+  if (uploadedImageB64) {
+    content.push({ type:'image', source:{ type:'base64', media_type:uploadedImageType, data:uploadedImageB64 } });
+  }
+
+  const userText = `${uploadedImageB64 ? 'Analyze the product in the image and create' : 'Create'} a DALL-E 3 image prompt.
+
+Product info:
+- Name: ${productName || 'not specified'}
+- Description: ${productDesc || 'not specified'}
+
+Scene/Style requirements:
+${styleContext}
+
+Create a detailed prompt that:
+1. ${uploadedImageB64 ? 'Describes the exact product from the image (shape, color, material, size, branding)' : 'Describes the product type based on given info'}
+2. Implements the scene/style requirements precisely
+3. Includes professional lighting, camera settings, and composition details
+4. No text or watermarks in the image
+5. Photorealistic, commercially viable output
+6. If people/hands are required by the scene, describe them naturally`;
+
+  content.push({ type:'text', text:userText });
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      system:systemPrompt,
+      messages:[{ role:'user', content }]
+    })
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(`Claude API Error: ${e.error?.message || res.status}`);
+  }
+
+  const data = await res.json();
+  const raw = data.content.map(b => b.text || '').join('');
+  let parsed;
+  try {
+    parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+  } catch {
+    parsed = { analysis:'วิเคราะห์สำเร็จ', prompt:raw };
+  }
+
+  return { prompt:parsed.prompt, analysis:parsed.analysis };
+}
+
+/* ═══════════════════════════════════════
+   DALL-E 3 GENERATION
+═══════════════════════════════════════ */
+async function generateWithDallE(prompt, size) {
+  size = size || '1024x1024';
+
+  const res = await fetch('https://api.openai.com/v1/images/generations', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':`Bearer ${openaiKey}`
+    },
+    body: JSON.stringify({
+      model:'dall-e-3',
+      prompt: prompt,
+      n:1,
+      size: size,
+      quality:'hd',
+      response_format:'url'
+    })
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    const msg = e.error?.message || '';
+    if (msg.includes('billing') || msg.includes('quota') || msg.includes('insufficient')) throw new Error('OpenAI credit หมดหรือบัญชีมีปัญหา — กรุณาตรวจสอบที่ platform.openai.com/billing');
+    if (msg.includes('invalid_api_key') || msg.includes('Incorrect API')) throw new Error('API Key ไม่ถูกต้อง — กรุณาตรวจสอบ key อีกครั้ง');
+    if (msg.includes('safety') || msg.includes('content_policy')) throw new Error('Prompt ไม่ผ่าน content policy ของ OpenAI — ลองปรับ prompt');
+    throw new Error(`DALL-E Error: ${msg || res.status}`);
+  }
+
+  const data = await res.json();
+  return data.data[0].url;
+}
+
+async function generateAgain() {
+  if (!lastPrompt) return;
+  if (!openaiKey) { alert('กรุณาใส่ OpenAI API Key'); return; }
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  document.getElementById('btnText').textContent = 'กำลังสร้าง...';
+  showProgress();
+  activateStep(3);
+  try {
+    const size = getSizeForMode();
+    const imageUrl = await generateWithDallE(lastPrompt, size);
+    allStepsDone();
+    await delay(200);
+    showResult(imageUrl, lastPrompt, lastAnalysis);
+    addHistory(imageUrl, lastPrompt, currentTab);
+  } catch(err) {
+    showError(err.message);
+  }
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  document.getElementById('btnText').textContent = '⚡ วิเคราะห์ & สร้างภาพ';
+}
+
+/* ═══════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════ */
+function addHistory(url, prompt, tab = '') {
+  generatedHistory.unshift({ url, prompt, tab });
+  if (generatedHistory.length > 20) generatedHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyImgs');
+  if (!generatedHistory.length) { el.innerHTML = '<span class="no-history">ยังไม่มีรูป</span>'; return; }
+  el.innerHTML = generatedHistory.map((h, i) =>
+    `<img class="history-thumb" src="${h.url}" title="${h.tab ? '['+h.tab+'] ' : ''}${h.prompt.substring(0,60)}..." onclick="viewHistory(${i})" />`
+  ).join('');
+}
+
+function viewHistory(i) {
+  const h = generatedHistory[i];
+  document.getElementById('generatedImg').src = h.url;
+  document.getElementById('downloadBtn').href = h.url;
+  document.getElementById('promptText').textContent = h.prompt;
+  document.getElementById('analysisText').textContent = '';
+  document.getElementById('analysisCard').style.display = 'none';
+  document.getElementById('resultBlock').style.display = 'flex';
+  document.getElementById('idleState').style.display = 'none';
+  document.getElementById('progressBlock').style.display = 'none';
+  document.getElementById('batchResultBlock').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════
+   COPY
+═══════════════════════════════════════ */
+async function copyPrompt() {
+  const text = document.getElementById('promptText').textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ คัดลอกแล้ว';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 คัดลอก'; btn.classList.remove('copied'); }, 2000);
+  } catch { alert('คัดลอกไม่ได้ กรุณา copy ด้วยตนเอง'); }
+}
+
+/* ═══════════════════════════════════════
+   UTILS
+═══════════════════════════════════════ */
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
