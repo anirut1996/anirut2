@@ -325,6 +325,13 @@ select option { background:var(--surface2); }
 
 /* Variation count */
 .variation-info { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-align:center; }
+
+.btn-sm {
+  background:var(--surface2); border:1px solid var(--border); color:var(--text);
+  padding:0.4rem 0.8rem; font-size:0.75rem; cursor:pointer; transition:all .15s;
+}
+.btn-sm.green { background:rgba(57,217,138,0.1); border-color:var(--green); color:var(--green); }
+.btn-sm:hover { opacity:0.8; }
 </style>
 </head>
 <body>
@@ -340,7 +347,7 @@ select option { background:var(--surface2); }
   <div class="header-right">
     <div class="api-status">
       <div class="dot" id="statusDot"></div>
-      <span id="apiStatusText">รอ API Key</span>
+      <span id="apiStatusText">พร้อมใช้งาน · ฟรี</span>
     </div>
   </div>
 </header>
@@ -475,6 +482,10 @@ select option { background:var(--surface2); }
             <div class="chip" data-val="1024x1792">9:16 Tall</div>
           </div>
         </div>
+        <button class="btn-generate" id="generateBtn">
+          <span class="spin"></span>
+          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
+        </button>
       </div>
     </div>
 
@@ -548,6 +559,10 @@ select option { background:var(--surface2); }
             </div>
           </div>
         </div>
+        <button class="btn-generate" id="handGenerateBtn">
+          <span class="spin"></span>
+          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
+        </button>
       </div>
     </div>
 
@@ -616,6 +631,10 @@ select option { background:var(--surface2); }
             </div>
           </div>
         </div>
+        <button class="btn-generate" id="convGenerateBtn">
+          <span class="spin"></span>
+          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
+        </button>
       </div>
     </div>
 
@@ -684,25 +703,11 @@ select option { background:var(--surface2); }
             </div>
           </div>
         </div>
+        <button class="btn-generate" id="packGenerateBtn">
+          <span class="spin"></span>
+          <span>⚡ วิเคราะห์ & สร้างภาพ</span>
+        </button>
       </div>
     </div>
 
-    <!-- ── TAB: BATCH ── -->
-    <div class="tab-panel" id="panel-batch">
-      <div class="settings-body">
-        <div class="mode-badge">🔄 Batch Mode — สร้างหลายสไตล์พร้อมกัน</div>
-        <div>
-          <div class="section-label">ข้อมูลสินค้า</div>
-          <div style="margin-bottom:.7rem">
-            <label class="field-label">ชื่อสินค้า</label>
-            <input type="text" id="batchProductName" placeholder="เช่น กล่องกระดาษ" />
-          </div>
-          <textarea id="batchProductDesc" placeholder="รายละเอียดสินค้า..." style="margin-bottom:.7rem"></textarea>
-          <button class="btn-sm green" onclick="readImageText()">📖 อ่านข้อความจากรูปภาพ</button>
-        </div>
-        <div>
-          <div class="section-label">เลือกสไตล์ที่ต้องการสร้าง (ได้หลายอัน)</div>
-          <div class="chips" id="batchStyleChips" style="gap:.5rem">
-            <div class="chip on" data-val="white_studio" style="padding:6px 12px">📸 White Studio</div>
-            <div class="chip on" data-val="warehouse" style="padding:6px 12px">🏭 โกดัง</div>
-            <div class="
+   
